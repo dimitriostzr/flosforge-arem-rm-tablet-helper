@@ -1,0 +1,25 @@
+{
+  "fill": {
+    "automatic-gradient": "display-p3:0.08000,0.12500,0.16500,1.00000"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "image-name": "symbol.png",
+          "name": "symbol"
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      }
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}

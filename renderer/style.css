@@ -1,0 +1,329 @@
+/*
+ * Design tokens and base components. The palette is the "Radar" theme from FlosForge Radar
+ * (themes/themes.json in cross-bluetooth-detectors), so the two apps look like one family.
+ */
+
+:root {
+  color-scheme: light;
+  --background: #fcfcfd;
+  --surface: #ffffff;
+  --surface-alt: #f1f3f6;
+  --hover: #e9edf2;
+  --text: #1d2027;
+  --muted: #5f6473;
+  --border: #e3e6eb;
+  --input: #dde1e7;
+  --primary: #1e7f92;
+  --on-primary: #ffffff;
+  --sidebar: #f7f8fa;
+  --ring: #2b9db3;
+
+  --alert: oklch(0.55 0.21 25);
+  --alert-bg: oklch(0.96 0.03 25);
+  --warning: oklch(0.55 0.13 65);
+  --warning-bg: oklch(0.97 0.04 85);
+  --success: oklch(0.5 0.13 155);
+
+  /* One colour per kind of note (dots, icon tiles). */
+  --type-notebook: oklch(0.55 0.1 200);
+  --type-pdf: oklch(0.58 0.19 25);
+  --type-epub: oklch(0.55 0.18 300);
+  --favorite: oklch(0.72 0.15 80);
+
+  --radius: 10px;
+  --shadow-pop: 0 10px 30px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.06);
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --background: #0f1218;
+    --surface: #171b22;
+    --surface-alt: #20252e;
+    --hover: #262c36;
+    --text: #f2f4f7;
+    --muted: #a4aab8;
+    --border: #2a303a;
+    --input: #333a46;
+    --primary: #6fd3e6;
+    --on-primary: #062b33;
+    --sidebar: #13171d;
+    --ring: #6fd3e6;
+
+    --alert: oklch(0.72 0.18 25);
+    --alert-bg: oklch(0.3 0.08 25 / 0.55);
+    --warning: oklch(0.82 0.14 80);
+    --warning-bg: oklch(0.32 0.06 80 / 0.5);
+    --success: oklch(0.76 0.15 155);
+
+    --type-notebook: oklch(0.76 0.1 200);
+    --type-pdf: oklch(0.72 0.17 25);
+    --type-epub: oklch(0.74 0.15 300);
+    --favorite: oklch(0.84 0.14 85);
+
+    --shadow-pop: 0 10px 30px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font: 13px/1.45 var(--font);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  background: var(--background);
+  color: var(--text);
+  user-select: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+code,
+.path,
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  user-select: text;
+  overflow-wrap: anywhere;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Buttons */
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  height: 32px;
+  padding: 0 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+button svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 500;
+}
+
+button.primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 88%, var(--text));
+}
+
+button.ghost {
+  background: none;
+  border-color: transparent;
+}
+
+button.link {
+  background: none;
+  border: 0;
+  height: auto;
+  padding: 2px 4px;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+button.link:hover:not(:disabled) {
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+button.icon {
+  width: 32px;
+  padding: 0;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Inputs */
+
+input[type='text'],
+input[type='search'],
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--input);
+  border-radius: 8px;
+  height: 32px;
+  padding: 0 10px;
+}
+
+input[type='text']:focus,
+input[type='search']:focus,
+select:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: -1px;
+}
+
+input[type='checkbox'] {
+  accent-color: var(--primary);
+  width: 15px;
+  height: 15px;
+  margin: 0;
+}
+
+/* Cards, chips, badges */
+
+.card-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.chip {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--surface-alt);
+  border-color: color-mix(in srgb, var(--text) 30%, var(--border));
+  font-weight: 600;
+}
+
+.chip .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip .count {
+  background: none;
+  padding: 0;
+  min-width: 0;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  flex: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+
+.status-dot.ok {
+  background: var(--success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.status-dot.warn {
+  background: var(--warning);
+}

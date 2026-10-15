@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Can't connect to the tablet?
+    url: https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper#connection-states
+    about: The usual causes and fixes, before you open a report.
+  - name: Want to change how it works?
+    url: https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper#fork-it
+    about: The repository doesn't take pull requests; fork it and make it yours.

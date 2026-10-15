@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in FlosForge ArEm Buddy doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. FlosForge ArEm Buddy is a personal project, so replies can take a few days.
+
+        **Can't connect?** Check [Connection states](https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper#connection-states) first: most connection problems are the tablet's **USB web interface** setting, a sleeping tablet, or (on a Mac) the **Local Network** permission.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        1. Opened the folder "Work"
+        2. Clicked Download Folder
+        3. Expected 12 PDFs, got 11 and an error for "Sketches": …
+    validations:
+      required: true
+  - type: dropdown
+    id: tablet
+    attributes:
+      label: Tablet
+      options:
+        - reMarkable Paper Pro
+        - reMarkable Paper Pro Move
+        - reMarkable 2
+        - reMarkable 1
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Tablet software version
+      description: On the tablet, in Settings (About).
+      placeholder: e.g. 3.22.0.65
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Your computer
+      options:
+        - macOS, Apple silicon
+        - macOS, Intel
+        - Windows, Intel/AMD
+        - Windows on ARM
+        - Linux, x86-64
+        - Linux, ARM64
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: In the app, under About.
+      placeholder: e.g. 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Tablet log (optional, but it helps a lot)
+      description: |
+        In the app, **Settings → Save Log…** saves the tablet's own log. Paste the end of it here, or attach the file.
+        It can contain the names of your notebooks: look it over and remove anything private first.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, the exact error message, or when it started.

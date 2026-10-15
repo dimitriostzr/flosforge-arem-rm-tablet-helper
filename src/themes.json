@@ -1,0 +1,276 @@
+{
+  "$comment": "Colour themes, shared with FlosForge Radar (cross-bluetooth-detectors/themes/themes.json; Radar's \"Radar\" theme is \"Ink\" here, without the radar-only colours). Every theme has a light and a dark variant; the app picks one by the System / Light / Dark setting. Colours are #RRGGBB, with alpha as #RRGGBBAA. Contrast is checked by test/themes.test.js. Name themes after a mood or an object, not after a film, game, book or product.",
+  "version": 1,
+  "themes": [
+    {
+      "id": "ink",
+      "name": "Ink",
+      "description": "The default: calm teal ink on clean paper.",
+      "monospace": false,
+      "light": {
+        "background": "#FCFCFD",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#F1F3F6",
+        "accent": "#E9EDF2",
+        "foreground": "#1D2027",
+        "muted": "#5F6473",
+        "border": "#E3E6EB",
+        "primary": "#1E7F92",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#F7F8FA"
+      },
+      "dark": {
+        "background": "#0F1218",
+        "surface": "#171B22",
+        "surfaceAlt": "#20252E",
+        "accent": "#262C36",
+        "foreground": "#F2F4F7",
+        "muted": "#A4AAB8",
+        "border": "#2A303A",
+        "primary": "#6FD3E6",
+        "onPrimary": "#062B33",
+        "sidebar": "#13171D"
+      }
+    },
+    {
+      "id": "phosphor",
+      "name": "Phosphor",
+      "description": "Green terminal glow, straight from an old CRT.",
+      "monospace": true,
+      "light": {
+        "background": "#F3FAF4",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#E5F2E8",
+        "accent": "#D7EBDC",
+        "foreground": "#0D2914",
+        "muted": "#46664F",
+        "border": "#C9DFCE",
+        "primary": "#11823A",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#EAF5EC"
+      },
+      "dark": {
+        "background": "#030A05",
+        "surface": "#071209",
+        "surfaceAlt": "#0C1C10",
+        "accent": "#10261A",
+        "foreground": "#B6F5C3",
+        "muted": "#5FB077",
+        "border": "#143A1F",
+        "primary": "#3DFF7A",
+        "onPrimary": "#021006",
+        "sidebar": "#050E07"
+      }
+    },
+    {
+      "id": "sprawl",
+      "name": "Sprawl",
+      "description": "Electric cyan over a midnight city grid.",
+      "monospace": false,
+      "light": {
+        "background": "#F4F6FC",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#E8ECF8",
+        "accent": "#DCE2F4",
+        "foreground": "#121A33",
+        "muted": "#535D86",
+        "border": "#D2D9EE",
+        "primary": "#0072A3",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#EDF0F9"
+      },
+      "dark": {
+        "background": "#070B16",
+        "surface": "#0D1324",
+        "surfaceAlt": "#141C33",
+        "accent": "#1B2542",
+        "foreground": "#E0E8FF",
+        "muted": "#8D9AC6",
+        "border": "#222D4F",
+        "primary": "#00E5FF",
+        "onPrimary": "#001A1F",
+        "sidebar": "#0A0F1D"
+      }
+    },
+    {
+      "id": "neon-rain",
+      "name": "Neon Rain",
+      "description": "Hot pink neon on a rainy night street.",
+      "monospace": false,
+      "light": {
+        "background": "#FFF6FB",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#FBE8F3",
+        "accent": "#F6DAEB",
+        "foreground": "#2A0F21",
+        "muted": "#784A68",
+        "border": "#F0D1E3",
+        "primary": "#C2185B",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#FDEFF7"
+      },
+      "dark": {
+        "background": "#0D0712",
+        "surface": "#160C1E",
+        "surfaceAlt": "#20122B",
+        "accent": "#2A1838",
+        "foreground": "#FBE9FF",
+        "muted": "#B892C8",
+        "border": "#3A1F4A",
+        "primary": "#FF2E97",
+        "onPrimary": "#24000F",
+        "sidebar": "#11091A"
+      }
+    },
+    {
+      "id": "amber",
+      "name": "Amber CRT",
+      "description": "Warm amber monochrome, like a vintage terminal.",
+      "monospace": true,
+      "light": {
+        "background": "#FFF9EE",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#FBEFD8",
+        "accent": "#F5E3C2",
+        "foreground": "#2E1F05",
+        "muted": "#735522",
+        "border": "#EEDDBB",
+        "primary": "#9A5F00",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#FDF4E2"
+      },
+      "dark": {
+        "background": "#0E0902",
+        "surface": "#160F04",
+        "surfaceAlt": "#201606",
+        "accent": "#2B1E09",
+        "foreground": "#FFD9A0",
+        "muted": "#C68F42",
+        "border": "#3A2A0E",
+        "primary": "#FFB000",
+        "onPrimary": "#1E1300",
+        "sidebar": "#120C03"
+      }
+    },
+    {
+      "id": "synthwave",
+      "name": "Synthwave",
+      "description": "Magenta and violet, an endless retro sunset.",
+      "monospace": false,
+      "light": {
+        "background": "#FBF7FF",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#F1E8FC",
+        "accent": "#E7DAF8",
+        "foreground": "#24123D",
+        "muted": "#66508B",
+        "border": "#E2D4F5",
+        "primary": "#A21CAF",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#F6EFFE"
+      },
+      "dark": {
+        "background": "#140B24",
+        "surface": "#1C1033",
+        "surfaceAlt": "#261643",
+        "accent": "#311C55",
+        "foreground": "#F6E9FF",
+        "muted": "#B7A0DA",
+        "border": "#3C2564",
+        "primary": "#FF71CE",
+        "onPrimary": "#2A0020",
+        "sidebar": "#180D2C"
+      }
+    },
+    {
+      "id": "glacier",
+      "name": "Glacier",
+      "description": "Cool blue-grey, quiet and precise.",
+      "monospace": false,
+      "light": {
+        "background": "#F5F8FB",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#E9EFF5",
+        "accent": "#DEE6EF",
+        "foreground": "#1E2A38",
+        "muted": "#56677A",
+        "border": "#D6DFE9",
+        "primary": "#3B6E8F",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#EEF3F8"
+      },
+      "dark": {
+        "background": "#1B222C",
+        "surface": "#222A36",
+        "surfaceAlt": "#2A3341",
+        "accent": "#323D4D",
+        "foreground": "#E5ECF4",
+        "muted": "#A0AEC0",
+        "border": "#364253",
+        "primary": "#8CC4D6",
+        "onPrimary": "#0F2730",
+        "sidebar": "#1E2530"
+      }
+    },
+    {
+      "id": "mainframe",
+      "name": "Mainframe",
+      "description": "Green on deep blue, the big-iron operator console.",
+      "monospace": true,
+      "light": {
+        "background": "#F2F7FF",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#E3EDFC",
+        "accent": "#D4E3FA",
+        "foreground": "#071D45",
+        "muted": "#3B5987",
+        "border": "#CCDCF5",
+        "primary": "#0B6E3A",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#EAF2FE"
+      },
+      "dark": {
+        "background": "#000C24",
+        "surface": "#001233",
+        "surfaceAlt": "#001A45",
+        "accent": "#002357",
+        "foreground": "#CDE7FF",
+        "muted": "#78ACDE",
+        "border": "#0A2D66",
+        "primary": "#4CFF8F",
+        "onPrimary": "#00210E",
+        "sidebar": "#000F2B"
+      }
+    },
+    {
+      "id": "paper",
+      "name": "Paper",
+      "description": "Warm paper and ink, for long reading sessions.",
+      "monospace": false,
+      "light": {
+        "background": "#FAF8F4",
+        "surface": "#FFFFFF",
+        "surfaceAlt": "#F2EEE6",
+        "accent": "#EAE4D9",
+        "foreground": "#2B2620",
+        "muted": "#70675A",
+        "border": "#E5DFD3",
+        "primary": "#A84B25",
+        "onPrimary": "#FFFFFF",
+        "sidebar": "#F5F2EC"
+      },
+      "dark": {
+        "background": "#1C1915",
+        "surface": "#24201B",
+        "surfaceAlt": "#2E2922",
+        "accent": "#38322A",
+        "foreground": "#F1EBE1",
+        "muted": "#B0A596",
+        "border": "#3B342B",
+        "primary": "#F08A5D",
+        "onPrimary": "#2A1205",
+        "sidebar": "#201C17"
+      }
+    }
+  ]
+}

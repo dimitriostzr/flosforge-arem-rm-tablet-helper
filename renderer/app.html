@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data: blob:" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FlosForge ArEm Buddy</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body class="app">
+    <aside class="sidebar">
+      <div class="brand drag" title="FlosForge ArEm Buddy: free and open source, by FlosForge.eu. Not affiliated with reMarkable AS.">
+        <img class="logo" src="../resources/icon.svg" alt="" />
+        <div class="brand-text">
+          <div class="brand-name">FlosForge ArEm Buddy</div>
+          <div class="brand-sub">Notes from your tablet</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Library">
+        <ul class="nav" id="nav-library"></ul>
+        <h3 id="folders-title">Folders</h3>
+        <ul class="nav tree" id="nav-folders" role="tree"></ul>
+      </nav>
+
+      <div class="sidebar-foot">
+        <ul class="nav">
+          <li>
+            <button type="button" class="nav-item" id="nav-settings">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg></span>
+              <span class="nav-label">Settings</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nav-item" id="nav-about">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5.5M12 7.6v.4" /></svg></span>
+              <span class="nav-label">About</span>
+            </button>
+          </li>
+        </ul>
+        <div class="status-block">
+          <span class="status-dot" id="status-dot"></span>
+          <div class="status-text">
+            <strong id="status-label">Checking…</strong>
+            <span class="muted" id="status-detail"></span>
+          </div>
+        </div>
+        <button type="button" class="wide" id="refresh">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4h-4" /></svg>
+          Reload
+        </button>
+      </div>
+    </aside>
+
+    <div class="content">
+      <!-- Not connected: how to connect. -->
+      <section class="view connect-view" id="connect" hidden>
+        <div class="drag-strip drag"></div>
+        <div class="connect">
+          <div class="connect-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2" /><path d="M8.5 7h7M8.5 10.5h7M8.5 14h4" /></svg>
+          </div>
+          <h1 id="connect-title">Connect your tablet</h1>
+          <p class="muted" id="connect-reason"></p>
+          <ol class="steps" id="connect-steps">
+            <li>Plug your reMarkable into this computer with a USB cable.</li>
+            <li>Wake it up and unlock it.</li>
+            <li>On the tablet, turn on <strong>Settings → Storage → USB web interface</strong>.</li>
+            <li class="mac-only">On this Mac, allow the app in <strong>System Settings → Privacy &amp; Security → Local Network</strong> (when running from source: allow your terminal app).</li>
+          </ol>
+          <div class="searching" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            <span id="connect-searching"></span>
+          </div>
+          <p class="problem muted" id="connect-problem" hidden></p>
+          <div class="row center">
+            <button type="button" class="primary" id="check">Check Now</button>
+            <button type="button" id="change-address">Change Address…</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- The library. -->
+      <section class="view library-view" id="library-view" hidden>
+        <header class="page-head drag">
+          <div class="page-titles">
+            <nav class="crumbs" id="page-crumbs" aria-label="Location" hidden></nav>
+            <h1 id="page-title">All notes</h1>
+            <p class="muted page-subtitle">
+              <span id="page-subtitle"></span>
+              <button type="button" class="link subtle" id="filter-subfolders" hidden></button>
+            </p>
+          </div>
+          <div class="page-actions">
+            <div class="segmented text" id="select-mode" role="radiogroup" aria-label="Selection" title="How a click selects notes">
+              <button type="button" role="radio" data-mode="one" title="A click selects one note; ⌘/Ctrl-click adds, Shift-click selects a range">One</button>
+              <button type="button" role="radio" data-mode="many" title="Every click adds to the selection">Many</button>
+            </div>
+            <div class="segmented" role="group" aria-label="Layout">
+              <button type="button" id="layout-grid" title="Grid" aria-label="Grid">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5" /><rect x="13" y="4" width="7" height="7" rx="1.5" /><rect x="4" y="13" width="7" height="7" rx="1.5" /><rect x="13" y="13" width="7" height="7" rx="1.5" /></svg>
+              </button>
+              <button type="button" id="layout-list" title="List" aria-label="List">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>
+              </button>
+            </div>
+            <button type="button" id="upload" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5M5 20h14" /></svg>
+              Upload
+            </button>
+            <button type="button" class="primary" id="download-view" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" /></svg>
+              <span id="download-view-label">Download All</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- One row: find (search, type, favorites) on the left, arrange on the right. -->
+        <div class="toolbar">
+          <div class="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg>
+            <input type="search" id="search" placeholder="Search" aria-label="Search note names, folders and text in downloaded notes" spellcheck="false" />
+          </div>
+          <div class="chips" id="type-chips" role="group" aria-label="Type"></div>
+          <button type="button" class="chip" id="filter-favorites" aria-pressed="false">
+            <span class="star" aria-hidden="true">★</span> Favorites <span class="count" id="favorites-count"></span>
+          </button>
+          <button type="button" class="chip" id="filter-scope" aria-pressed="false" hidden></button>
+          <button type="button" class="chip clear-chip" id="filter-clear" title="Clear search and filters" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17" /></svg>
+            Clear
+          </button>
+          <span class="spacer"></span>
+          <label class="select with-icon compact">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M8 3v4M16 3v4" /></svg>
+            <span class="sr-only">Modified</span>
+            <select id="filter-modified" title="Modified">
+              <option value="any">Any time</option>
+              <option value="7">Past 7 days</option>
+              <option value="30">Past 30 days</option>
+              <option value="90">Past 3 months</option>
+              <option value="365">Past year</option>
+              <option value="older365">Over a year ago</option>
+            </select>
+          </label>
+          <label class="select with-icon compact">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3" /></svg>
+            <span class="sr-only">Sort</span>
+            <select id="sort" title="Sort">
+              <option value="modified-desc">Newest first</option>
+              <option value="modified-asc">Oldest first</option>
+              <option value="name-asc">Name A–Z</option>
+              <option value="name-desc">Name Z–A</option>
+              <option value="folder-asc">Folder</option>
+            </select>
+          </label>
+          <button type="button" class="select-toggle" id="select-toggle">
+            <span class="check-box" id="select-toggle-box" aria-hidden="true"></span>
+            <span id="select-toggle-label">Select all</span>
+          </button>
+        </div>
+
+        <div class="results" id="results" tabindex="-1">
+          <div class="subfolders" id="subfolders" hidden></div>
+          <div class="grid" id="grid"></div>
+          <div class="table-wrap card-panel" id="table-wrap" hidden>
+            <table class="table" id="table">
+              <thead>
+                <tr>
+                  <th class="col-check"><input type="checkbox" id="select-all" aria-label="Select all shown" /></th>
+                  <th>Note</th>
+                  <th>Folder</th>
+                  <th class="col-type">Type</th>
+                  <th class="col-date">Modified</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="empty" hidden>
+            <div class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4.5 4.5" /></svg></div>
+            <p id="empty-text"></p>
+            <button type="button" id="empty-action" hidden></button>
+          </div>
+        </div>
+
+        <!-- Shown while files are dragged over the window. -->
+        <div class="drop-overlay" id="drop-overlay" hidden>
+          <div class="drop-card">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5M5 20h14" /></svg>
+            <strong id="drop-title">Drop to upload</strong>
+            <span class="muted">PDF, EPUB or .rmdoc</span>
+          </div>
+        </div>
+
+        <!-- Only while a download runs or just finished. -->
+        <div class="activity" id="activity" hidden>
+          <div class="activity-row">
+            <span class="activity-icon" id="activity-icon" aria-hidden="true"></span>
+            <span class="spinner" id="activity-spinner" aria-hidden="true"></span>
+            <span class="activity-text" id="activity-text" role="status"></span>
+            <span class="spacer"></span>
+            <button type="button" class="link" id="activity-open">Open folder</button>
+            <button type="button" id="stop">Stop</button>
+            <button type="button" class="ghost icon" id="activity-dismiss" title="Dismiss" aria-label="Dismiss">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+            </button>
+          </div>
+          <progress id="progress-bar"></progress>
+          <details id="result-failures" hidden>
+            <summary id="result-failures-summary"></summary>
+            <ul id="result-failures-list"></ul>
+          </details>
+        </div>
+
+        <!-- Only while something is selected. -->
+        <div class="selection-bar" id="selection-bar" hidden>
+          <span class="selection-count" id="selection-count"></span>
+          <button type="button" class="link" id="select-none">Clear</button>
+          <span class="spacer"></span>
+          <button type="button" id="thumbs-selected" title="Export these notes into the app's preview cache and draw their first pages. Nothing is saved to your Downloads folder.">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="m4 16 4.5-4.5 3 3L15 11l5 5" /><circle cx="9" cy="8.5" r="1.5" /></svg>
+            <span id="thumbs-selected-label">Get Thumbnails</span>
+          </button>
+          <button type="button" id="combine-selected" title="Join the selected notes into one PDF, in the order shown">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h7l4 4v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" /><path d="M5 7v13a1 1 0 0 0 1 1h10" /><path d="M10 10.5h6M10 14h6" /></svg>
+            Combine into PDF
+          </button>
+          <button type="button" class="primary" id="download-selected">Download</button>
+        </div>
+      </section>
+
+      <!-- Settings. -->
+      <section class="view settings-view" id="settings-view" hidden>
+        <header class="page-head drag">
+          <div class="page-titles">
+            <h1>Settings</h1>
+            <p class="muted">The tablet connection and where downloads go.</p>
+          </div>
+        </header>
+        <div class="settings-body">
+          <section class="card-panel settings-card">
+            <div class="card-head">
+              <div>
+                <h2>Tablet address</h2>
+                <p class="muted">Where ArEm finds the tablet's USB web interface.</p>
+              </div>
+              <span class="status-pill" id="settings-status"><span class="status-dot" id="settings-dot"></span><span id="settings-status-text"></span></span>
+            </div>
+            <form class="row" id="address-form">
+              <input type="text" class="grow mono-input" id="address" spellcheck="false" autocomplete="off" aria-label="Tablet address" />
+              <button type="button" id="test">Test</button>
+              <button type="submit" class="primary" id="save">Save</button>
+            </form>
+            <div class="row">
+              <span class="muted">Default: <code id="default-address"></code></span>
+              <span class="spacer"></span>
+              <button type="button" class="link" id="reset">Reset to default</button>
+            </div>
+            <p class="form-status" id="address-status" aria-live="polite"></p>
+
+            <div class="sub-section">
+              <h3 class="sub-head">Saved tablets</h3>
+              <ul class="tablet-list" id="tablet-list"></ul>
+              <form class="row" id="tablet-form">
+                <input type="text" class="grow" id="tablet-name" maxlength="60" placeholder="Name for the address above, e.g. Paper Pro" aria-label="Tablet name" />
+                <button type="submit" id="tablet-save">Save Tablet</button>
+              </form>
+              <p class="form-status" id="tablet-status" aria-live="polite"></p>
+            </div>
+
+            <div class="setting-row sub-section">
+              <span>
+                <strong>Tablet log</strong>
+                <span class="muted">The tablet's own log, for troubleshooting or a bug report.</span>
+              </span>
+              <button type="button" id="save-log">Save Log…</button>
+            </div>
+            <p class="form-status" id="log-status" aria-live="polite"></p>
+          </section>
+
+          <section class="card-panel settings-card">
+            <div class="card-head">
+              <div>
+                <h2>Downloads</h2>
+                <p class="muted">PDFs are saved here, in the same folders as on the tablet.</p>
+              </div>
+            </div>
+            <div class="dest-box">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2h9A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z" /></svg>
+              <span class="path" id="destination"></span>
+              <span class="spacer"></span>
+              <button type="button" id="open-destination">Open</button>
+              <button type="button" id="choose-destination">Change…</button>
+            </div>
+            <label class="toggle-row">
+              <span>
+                <strong>Skip notebooks that haven't changed</strong>
+                <span class="muted">Only download notebooks edited since their last download.</span>
+              </span>
+              <input type="checkbox" class="switch" id="skip-unchanged" />
+            </label>
+            <label class="toggle-row">
+              <span>
+                <strong>Also save .rmdoc backups</strong>
+                <span class="muted">Each notebook in reMarkable's own format too, next to its PDF. Upload a .rmdoc to put the notebook back on a tablet, pen strokes and all.</span>
+              </span>
+              <input type="checkbox" class="switch" id="rmdoc-backups" />
+            </label>
+            <label class="toggle-row">
+              <span>
+                <strong>Keep older versions</strong>
+                <span class="muted">When a notebook has changed, its previous copy moves to <code>_versions</code> in the save-to folder, dated, instead of being replaced.</span>
+              </span>
+              <input type="checkbox" class="switch" id="keep-versions" />
+            </label>
+            <label class="toggle-row">
+              <span>
+                <strong>Download everything when the tablet connects</strong>
+                <span class="muted">Once each time it's plugged in, or when the app starts with it connected. Only while this window is open.</span>
+              </span>
+              <input type="checkbox" class="switch" id="auto-download" />
+            </label>
+            <p class="muted" id="busy-note"></p>
+          </section>
+
+          <!-- Placeholders: the USB web interface has no delete request (see README). -->
+          <section class="card-panel settings-card">
+            <div class="card-head">
+              <div>
+                <h2>Deleting notes</h2>
+                <p class="muted">A note would be downloaded into <code>_deleted</code> in the save-to folder before it's removed from the tablet.</p>
+              </div>
+            </div>
+            <p class="setting-notice" id="delete-unavailable">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5.5M12 16.5v.01" /></svg>
+              <span>Not available yet: the reMarkable USB web interface can list, download and upload notes, but it can't delete them.</span>
+            </p>
+            <label class="toggle-row disabled">
+              <span>
+                <strong>Allow deleting notes</strong>
+                <span class="muted">Delete one note at a time.</span>
+              </span>
+              <input type="checkbox" class="switch" id="allow-delete" disabled aria-describedby="delete-unavailable" />
+            </label>
+            <label class="toggle-row disabled">
+              <span>
+                <strong>Allow deleting several notes at once</strong>
+                <span class="muted">Delete every selected note.</span>
+              </span>
+              <input type="checkbox" class="switch" id="allow-bulk-delete" disabled aria-describedby="delete-unavailable" />
+            </label>
+          </section>
+
+          <section class="card-panel settings-card">
+            <div class="card-head">
+              <div>
+                <h2>Appearance</h2>
+                <p class="muted">Light or dark, and a colour theme. Every theme comes in both.</p>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span>
+                <strong>Mode</strong>
+                <span class="muted">System follows your computer's light or dark setting.</span>
+              </span>
+              <div class="segmented text" id="mode-group" role="radiogroup" aria-label="Mode">
+                <button type="button" role="radio" data-mode="system">System</button>
+                <button type="button" role="radio" data-mode="light">Light</button>
+                <button type="button" role="radio" data-mode="dark">Dark</button>
+              </div>
+            </div>
+            <div class="theme-grid" id="theme-grid" role="radiogroup" aria-label="Theme"></div>
+          </section>
+
+          <p class="about muted">
+            FlosForge ArEm Buddy is an independent project, not affiliated with or endorsed by reMarkable AS. See About.
+          </p>
+        </div>
+      </section>
+
+      <!-- About. -->
+      <section class="view about-view" id="about-view" hidden>
+        <header class="page-head drag">
+          <div class="page-titles">
+            <h1>About</h1>
+            <p class="muted">Who makes FlosForge ArEm Buddy, and the fine print.</p>
+          </div>
+        </header>
+        <div class="settings-body">
+          <section class="card-panel about-hero">
+            <img class="about-icon" src="../resources/icon.svg" alt="" />
+            <div>
+              <h2>FlosForge ArEm Buddy</h2>
+              <p class="muted" id="about-version"></p>
+              <p>Browse, read, download and upload the notes on your reMarkable tablet, over USB.</p>
+            </div>
+          </section>
+
+          <section class="card-panel settings-card about-facts">
+            <div class="fact">
+              <span class="fact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5" /></svg></span>
+              <span>
+                <strong>Developed by Dimitrios T.</strong>
+                <span class="muted">from <button type="button" class="link inline" data-link="flosforge">FlosForge.eu</button></span>
+              </span>
+            </div>
+            <div class="fact">
+              <span class="fact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7 3 12l5 5M16 7l5 5-5 5M14 4l-4 16" /></svg></span>
+              <span>
+                <strong>Free and open source</strong>
+                <span class="muted">MIT license: use it, change it and share it freely. <button type="button" class="link inline" data-link="source">Source code</button> · <button type="button" class="link inline" id="about-licenses">Licenses</button></span>
+              </span>
+            </div>
+            <div class="fact">
+              <span class="fact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3.5 7.5 12 12l8.5-4.5z" /><path d="m3.5 12 8.5 4.5 8.5-4.5M3.5 16.5 12 21l8.5-4.5" /></svg></span>
+              <span>
+                <strong>Built with</strong>
+                <span class="muted">Electron (MIT), which includes Chromium and Node.js under their own licenses; pdf.js by Mozilla (Apache 2.0); pdf-lib (MIT) with pako (MIT), tslib (0BSD), @pdf-lib/standard-fonts and @pdf-lib/upng (MIT). Some icons are adapted from Feather Icons (MIT). <button type="button" class="link inline" id="about-licenses-all">Full license texts</button> · <button type="button" class="link inline" id="about-chromium">Chromium licenses</button></span>
+              </span>
+            </div>
+            <div class="fact">
+              <span class="fact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></svg></span>
+              <span>
+                <strong>Private</strong>
+                <span class="muted">Everything stays on your computer: no account, no cloud, no tracking. It talks only to your tablet, over USB.</span>
+              </span>
+            </div>
+            <div class="fact">
+              <span class="fact-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3 2.4c-.6.2-.5.7-.5 1.6M12 16.5v.4" /></svg></span>
+              <span>
+                <strong>Not affiliated with reMarkable</strong>
+                <span class="muted">reMarkable is a trademark of reMarkable AS. FlosForge ArEm Buddy is an independent project and is not affiliated with, endorsed by or sponsored by reMarkable AS. It works with their tablets through the tablet's built-in USB web interface.</span>
+              </span>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- In-app reader (pdf.js, see pdf-view.mjs). -->
+      <section class="view reader" id="reader" hidden aria-label="Reader">
+        <header class="reader-head drag">
+          <button type="button" id="reader-back">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            Back
+          </button>
+          <div class="reader-title">
+            <strong id="reader-name"></strong>
+            <span class="muted" id="reader-meta"></span>
+          </div>
+          <span class="spacer"></span>
+          <div class="reader-tools" id="reader-tools" hidden>
+            <button type="button" class="icon" id="reader-rail-toggle" title="Show pages" aria-label="Show pages" aria-pressed="true" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2" /><path d="M9 4v16M5.5 8h1.5M5.5 11.5h1.5M5.5 15h1.5" /></svg>
+            </button>
+            <span class="page-indicator" id="reader-page" aria-live="polite"></span>
+            <div class="segmented zoom" role="group" aria-label="Zoom">
+              <button type="button" id="zoom-out" title="Zoom out (⌘−)" aria-label="Zoom out">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12" /></svg>
+              </button>
+              <button type="button" class="zoom-level" id="zoom-fit" title="Fit width (⌘0)"></button>
+              <button type="button" id="zoom-in" title="Zoom in (⌘+)" aria-label="Zoom in">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12" /></svg>
+              </button>
+            </div>
+          </div>
+          <span class="reader-saved muted" id="reader-saved" hidden></span>
+          <button type="button" class="link" id="reader-saved-open" hidden>Show in folder</button>
+          <button type="button" class="primary" id="reader-download" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14" /></svg>
+            <span id="reader-download-label">Download</span>
+          </button>
+          <button type="button" class="icon" id="reader-print" title="Print (⌘P)" aria-label="Print" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z" /></svg>
+          </button>
+          <button type="button" class="icon" id="reader-png" title="Export pages as PNG images" aria-label="Export pages as PNG images" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /><path d="m4 16 4.5-4.5 3 3L15 11l5 5" /><circle cx="9" cy="8.5" r="1.5" /></svg>
+          </button>
+          <button type="button" class="icon" id="reader-external" title="Open in your PDF app" aria-label="Open in your PDF app" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4" /></svg>
+          </button>
+        </header>
+        <div class="reader-body">
+          <div class="reader-state" id="reader-state">
+            <span class="spinner" id="reader-spinner" aria-hidden="true"></span>
+            <p id="reader-message"></p>
+            <p class="muted" id="reader-hint"></p>
+            <button type="button" id="reader-action" hidden></button>
+          </div>
+          <nav class="reader-rail" id="reader-rail" aria-label="Pages" hidden></nav>
+          <div class="reader-pages" id="reader-pages" tabindex="0" hidden></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Shown once, on first launch. -->
+    <div class="modal-backdrop" id="welcome" hidden>
+      <div class="modal card-panel" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+        <img class="modal-icon" src="../resources/icon.svg" alt="" />
+        <h2 id="welcome-title">Welcome to FlosForge ArEm Buddy</h2>
+        <p class="muted">Browse, read, download and upload the notes on your reMarkable tablet, over USB.</p>
+        <ul class="modal-facts">
+          <li><strong>Free and open source</strong>, developed by Dimitrios T. from <button type="button" class="link inline" data-link="flosforge">FlosForge.eu</button>.</li>
+          <li><strong>Private:</strong> everything stays on your computer. No account, no cloud, no tracking.</li>
+          <li><strong>Not affiliated with reMarkable.</strong> reMarkable is a trademark of reMarkable AS; FlosForge ArEm Buddy is an independent project, not endorsed or sponsored by them.</li>
+        </ul>
+        <div class="row end">
+          <button type="button" class="primary" id="welcome-ok">Get started</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filled with the open note's pages while printing; the only thing that prints. -->
+    <div id="print-sheet" aria-hidden="true"></div>
+
+    <script src="app.js"></script>
+    <script type="module" src="pdf-view.mjs"></script>
+  </body>
+</html>

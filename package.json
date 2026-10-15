@@ -1,0 +1,148 @@
+{
+  "name": "flosforge-arem-buddy",
+  "productName": "FlosForge ArEm Buddy",
+  "version": "1.0.0",
+  "description": "FlosForge ArEm Buddy: browse, read, download and upload the notes on a reMarkable tablet over USB. Free and open source. Not affiliated with reMarkable AS.",
+  "main": "main.js",
+  "desktopName": "flosforge-arem-buddy.desktop",
+  "private": true,
+  "license": "MIT",
+  "author": {
+    "name": "Dimitrios T.",
+    "url": "https://flosforge.eu"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node scripts/dev-mac-name.mjs && electron .",
+    "start:mock": "node scripts/dev-mac-name.mjs && RM_HOST=http://127.0.0.1:8099 electron .",
+    "mock-tablet": "node test/mock-tablet.js",
+    "test": "node --test test/*.test.js",
+    "pack": "node scripts/dist.mjs --dir",
+    "dist": "node scripts/dist.mjs",
+    "dist:win-zip": "node scripts/dist.mjs --win zip:x64 zip:arm64",
+    "dist:linux": "node scripts/dist.mjs --linux",
+    "icons": "node scripts/make-icons.mjs",
+    "screenshots": "electron scripts/screenshots.js"
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.flosforge.arem-buddy",
+    "productName": "FlosForge ArEm Buddy",
+    "copyright": "Copyright © 2026 Dimitrios T. (FlosForge.eu)",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "renderer/**/*",
+      "resources/icon.png",
+      "resources/icon-macos.png",
+      "resources/icon.svg",
+      "THIRD_PARTY_NOTICES.md",
+      "LICENSE",
+      "package.json",
+      "!**/*.map",
+      "!node_modules/@napi-rs/**",
+      "!node_modules/pdfjs-dist/legacy/**",
+      "!node_modules/pdfjs-dist/types/**",
+      "!node_modules/pdfjs-dist/web/**",
+      "!node_modules/pdfjs-dist/image_decoders/**",
+      "!node_modules/pdfjs-dist/build/pdf.mjs",
+      "!node_modules/pdfjs-dist/build/pdf.worker.mjs",
+      "!node_modules/pdfjs-dist/build/pdf.sandbox*",
+      "!node_modules/pdfjs-dist/cmaps/**",
+      "!node_modules/pdfjs-dist/iccs/**",
+      "!node_modules/pdfjs-dist/standard_fonts/**",
+      "!node_modules/pdfjs-dist/wasm/**",
+      "!node_modules/pdf-lib/dist/**",
+      "!node_modules/pdf-lib/es/**",
+      "!node_modules/pdf-lib/src/**",
+      "!node_modules/pdf-lib/ts3.4/**",
+      "!node_modules/pako/dist/**"
+    ],
+    "extraResources": [
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "hardenedRuntime": true,
+      "entitlements": "resources/entitlements.mac.plist",
+      "entitlementsInherit": "resources/entitlements.mac.plist",
+      "extendInfo": {
+        "NSLocalNetworkUsageDescription": "FlosForge ArEm Buddy connects to your reMarkable tablet through its USB connection, to show, download and upload your notes. It never contacts other devices."
+      }
+    },
+    "dmg": {
+      "artifactName": "FlosForge-ArEm-Buddy-macOS-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "icon": "resources/icon.ico",
+      "artifactName": "FlosForge-ArEm-Buddy-Windows-${version}-${arch}.${ext}",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "FlosForge-ArEm-Buddy-Windows-${version}-Setup.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "icon": "resources/icon.png",
+      "category": "Office",
+      "synopsis": "Browse, read and download the notes on a reMarkable tablet",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "FlosForge-ArEm-Buddy-Linux-${version}-${arch}.${ext}",
+      "syncDesktopName": true,
+      "maintainer": "Dimitrios T"
+    },
+    "afterPack": "scripts/after-pack.cjs",
+    "toolsets": {
+      "appimage": "1.0.3"
+    }
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.4.299"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper.git"
+  },
+  "homepage": "https://flosforge.eu"
+}
