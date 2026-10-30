@@ -69,8 +69,8 @@ Ready-made apps are on the **[Releases page](https://github.com/dimitriostzr/flo
 |---|---|
 | macOS, Apple silicon | `FlosForge-ArEm-Buddy-macOS-<version>-arm64.dmg` |
 | macOS, Intel | `FlosForge-ArEm-Buddy-macOS-<version>-x64.dmg` |
-| Windows 10/11, Intel/AMD | `FlosForge-ArEm-Buddy-Windows-<version>-x64.zip` |
-| Windows 11 on ARM | `FlosForge-ArEm-Buddy-Windows-<version>-arm64.zip` |
+| Windows (installer) | `FlosForge-ArEm-Buddy-Windows-<version>-x64-setup.exe` (or `arm64` for Windows on ARM) |
+| Windows (no install) | `FlosForge-ArEm-Buddy-Windows-<version>-x64-portable.exe` (or `arm64`) |
 | Linux, x86-64 | `FlosForge-ArEm-Buddy-Linux-<version>-x86_64.AppImage` |
 | Linux, ARM64 | `FlosForge-ArEm-Buddy-Linux-<version>-arm64.AppImage` |
 
@@ -79,9 +79,8 @@ The apps aren't signed with a paid Apple or Microsoft certificate, so your syste
 - **macOS:** drag the app to Applications and open it once, then go to **System Settings → Privacy & Security** and
   click **Open Anyway**. When macOS asks whether the app may find devices on your local network, allow it: the
   tablet's USB connection counts as one.
-- **Windows:** unzip the folder anywhere (for example into Documents) and run `FlosForge ArEm Buddy.exe` inside it.
-  SmartScreen warns about an unknown publisher: click **More info**, then **Run anyway**. To remove the app, delete
-  the folder.
+- **Windows:** run the setup (or the portable `.exe`, which runs without installing). SmartScreen warns about an
+  unknown publisher: click **More info**, then **Run anyway**.
 - **Linux:** make the AppImage executable (`chmod +x FlosForge-ArEm-Buddy-*.AppImage`) and run it. Without FUSE,
   start it with `--appimage-extract-and-run`; if it closes straight away with a message about the sandbox, add
   `--no-sandbox`.
@@ -95,9 +94,9 @@ git clone https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper.git
 cd flosforge-arem-rm-tablet-helper
 npm install
 npm start              # run it straight away, or package it:
-npm run dist           # this computer's system: .dmg on a Mac, Setup.exe on Windows, AppImages on Linux
+npm run dist           # this computer's system: .dmg on a Mac, installers on Windows, AppImages on Linux
 npm run dist:linux     # Linux AppImages (x86-64 and ARM64), from any system
-npm run dist:win-zip   # Windows zip folders (x64 and ARM64), from any system
+npm run dist:win       # Windows installers and portable .exe (x64 and ARM64), on Windows or macOS
 ```
 
 The apps end up in `release/`. More in [Development](#development).
@@ -288,11 +287,10 @@ On macOS, `npm start` first renames the development copy of Electron (in `node_m
 npm run dist          # installers for this OS in release/ (Mac: a .dmg each for Apple silicon and Intel)
 npm run pack          # just the unpacked app, quicker
 npm run dist:linux    # Linux AppImages (x86-64 and ARM64), from any OS
-npm run dist:win-zip  # Windows as zip folders (x64 and ARM64), from any OS
+npm run dist:win      # Windows installers and portable .exe (x64 and ARM64), on Windows or macOS
 ```
 
-`npm run dist` on Windows also makes a `Setup.exe` installer. Elsewhere that needs Wine, so the
-releases ship Windows as a zip.
+The Windows packages build on Windows or macOS.
 
 Without an Apple Developer ID certificate the Mac app is signed ad hoc. That runs on the Mac
 that built it. Copied to another Mac, it's blocked by Gatekeeper until the user clicks

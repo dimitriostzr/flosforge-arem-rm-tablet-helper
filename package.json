@@ -21,7 +21,7 @@
     "test": "node --test test/*.test.js",
     "pack": "node scripts/dist.mjs --dir",
     "dist": "node scripts/dist.mjs",
-    "dist:win-zip": "node scripts/dist.mjs --win zip:x64 zip:arm64",
+    "dist:win": "node scripts/dist.mjs --win",
     "dist:linux": "node scripts/dist.mjs --linux",
     "icons": "node scripts/make-icons.mjs",
     "screenshots": "electron scripts/screenshots.js"
@@ -105,14 +105,26 @@
             "x64",
             "arm64"
           ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
     "nsis": {
-      "artifactName": "FlosForge-ArEm-Buddy-Windows-${version}-Setup.${ext}",
+      "artifactName": "FlosForge-ArEm-Buddy-Windows-${version}-${arch}-setup.${ext}",
       "oneClick": false,
       "perMachine": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "buildUniversalInstaller": false
+    },
+    "portable": {
+      "artifactName": "FlosForge-ArEm-Buddy-Windows-${version}-${arch}-portable.${ext}"
     },
     "linux": {
       "icon": "resources/icon.png",
