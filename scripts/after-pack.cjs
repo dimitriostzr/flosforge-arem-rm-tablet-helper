@@ -16,6 +16,9 @@ exports.default = async function afterPack(context) {
   prepareMacApp(app, { seed: appInfo.id, info: config.mac?.extendInfo });
   console.log(`  • gave the executables of ${path.basename(app)} their own UUIDs (Local Network access)`);
 
+  // Since 44.10, Electron's npm package downloads dist/ on first use instead of at install, and
+  // loading it is that first use: without this, a fresh `npm install` has no dist/ to copy from.
+  require('electron');
   const dist = path.join(path.dirname(require.resolve('electron/package.json')), 'dist');
   const resources = path.join(app, 'Contents', 'Resources');
   fs.copyFileSync(path.join(dist, 'LICENSE'), path.join(resources, 'LICENSE.electron.txt'));
