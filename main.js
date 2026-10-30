@@ -16,7 +16,7 @@ const { pathToFileURL } = require('node:url');
 const { app, BrowserWindow, dialog, ipcMain, Menu, nativeTheme, shell } = require('electron');
 
 const { RemarkableClient, DEFAULT_BASE_URL, UPLOAD_TYPES, normalizeAddress } = require('./src/remarkable');
-const { exportDocuments, fetchPdf, savedCopy, savedCopies } = require('./src/sync');
+const { exportDocuments, fetchPdf, savedCopy, savedCopies, savedFile, localLibrary } = require('./src/sync');
 const { sanitizeFileName } = require('./src/sanitize');
 const { Config, FLAGS } = require('./src/config');
 const { TextIndex } = require('./src/textindex');
@@ -199,7 +199,8 @@ async function runDownload({ all, targets, skipUnchanged, auto = false }) {
           const folders = [...target.folders, target.name];
           docs.push(...(await client.listDocuments(signal, { folderId: target.id, folders })));
         } else {
-          docs.push({ id: target.id, name: target.name, folders: target.folders, modified: target.modified });
+          const { id, name, folders, modified, fileType, favorite } = target;
+          docs.push({ id, name, folders, modified, fileType, favorite });
         }
       }
     }
@@ -487,6 +488,8 @@ function parseDownloadRequest(request) {
       name: t.name,
       folders: Array.isArray(t.folders) ? t.folders.filter(isString) : [],
       modified: isString(t.modified) ? t.modified : null,
+      fileType: isString(t.fileType) && t.fileType.length < 20 ? t.fileType : undefined,
+      favorite: typeof t.favorite === 'boolean' ? t.favorite : undefined,
     }));
   if (!clean.length) throw new Error('Nothing selected');
   return { targets: clean, skipUnchanged };
@@ -552,6 +555,26 @@ async function openNote(doc) {
       checkStatus();
     }
   }
+}
+
+/**
+ * With no tablet to ask: whatever copy of the note this computer has, even an older version.
+ * `outdated` when the tablet last listed another version than the copy's.
+ */
+async function openNoteOffline(doc) {
+  let found = await savedFile(config.destination, doc.id).catch(() => null);
+  if (!found) {
+    const { pdf, meta } = previewPaths(doc);
+    const cached = await fsp
+      .readFile(meta, 'utf8')
+      .then(JSON.parse)
+      .catch(() => null);
+    if (cached && (await fsp.stat(pdf).catch(() => null))) found = { file: pdf, modified: cached.modified ?? null };
+  }
+  if (!found) return { error: 'it isn’t saved on this computer, and the tablet is not connected' };
+  readablePaths.add(found.file);
+  const outdated = Boolean(doc.modified && found.modified && doc.modified !== found.modified);
+  return { url: pathToFileURL(found.file).href, path: found.file, source: 'saved', outdated };
 }
 
 // ---------------------------------------------------------------------------
@@ -763,6 +786,8 @@ function confirmCloseDuringDownload(event) {
 }
 
 async function openDestination() {
+  const exists = await fsp.stat(config.destination).then((s) => s.isDirectory(), () => false);
+  if (!exists) return { error: `${displayPath(config.destination)} doesn’t exist yet. It’s made by the first download.` };
   const error = await shell.openPath(config.destination);
   return error ? { error } : {};
 }
@@ -821,6 +846,9 @@ function registerIpc() {
     }
   });
 
+  // The notes saved in the save-to folder, for browsing them while no tablet is connected.
+  handle('local:library', async () => ({ library: await localLibrary(config.destination) }));
+
   handle('download:start', (_event, request) => {
     if (state.job) return { error: 'A download is already running.' };
     if (state.reading) return { error: 'Wait for the note you opened to finish exporting.' };
@@ -847,8 +875,8 @@ function registerIpc() {
     const valid = isNoteId(doc?.id) && typeof doc.name === 'string' && doc.name.length < 1000;
     if (!valid) throw new Error('Bad note');
     if (state.job) return { error: 'Wait for the download to finish.' };
-    if (state.status !== 'ok') return { error: 'The tablet is not connected.' };
-    return openNote({ id: doc.id, name: doc.name, modified: typeof doc.modified === 'string' ? doc.modified : null });
+    const clean = { id: doc.id, name: doc.name, modified: typeof doc.modified === 'string' ? doc.modified : null };
+    return state.status === 'ok' ? openNote(clean) : openNoteOffline(clean);
   });
 
   handle('note:cancel', () => {

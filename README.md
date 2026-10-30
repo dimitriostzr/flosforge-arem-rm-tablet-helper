@@ -41,9 +41,11 @@ FlosForge ArEm Buddy is an independent project, not affiliated with, endorsed by
 
 - **Library:** every note on the tablet as a grid or a list, with thumbnails, a folder tree, favorites (the ones you
   starred on the tablet) and recently modified. Filter by type, favorite and date; sort by date, name or folder.
+- **Offline:** with no tablet connected, the notes you've downloaded are still there to browse, search and read,
+  from the save-to folder (folders, favorites and types as the tablet had them when you downloaded).
 - **Search:** note and folder names, and the text inside notes you've downloaded or opened (typed text, imported
   PDFs and EPUBs, and handwriting you converted on the tablet). Ignores case and accents, and shows the matching line.
-- **Reader:** pages drawn in the app's theme, with page thumbnails, zoom, **Print**, **Open in PDF app** and
+- **Reader:** pages drawn in the app's theme, with page thumbnails, zoom (or pinch on a trackpad), **Print**, **Open in PDF app** and
   **Export as PNG**.
 - **Download:** notes, folders, a filtered view or the whole tablet as PDFs, in the same folders as on the tablet.
   Unchanged notebooks are skipped, and identical files are left untouched so Drive doesn't upload them again.
@@ -206,9 +208,10 @@ How downloads are saved:
   have the same name (the notebook gets the ID suffix instead). Names Windows reserves (`CON`,
   `NUL`, `COM1`…) get a dash, and a tablet folder called `_versions` is saved as
   `_versions (tablet)`.
-- `.remarkable-sync.json` in the save-to folder records what was downloaded: modified date,
-  size and SHA-256. When a download turns out byte-identical to the existing file, that file
-  is left untouched, so Google Drive doesn't re-upload it. Renamed or moved notebooks replace
+- `.remarkable-sync.json` in the save-to folder records what was downloaded, by the tablet's
+  notebook ID: name, folders, modified date, size and SHA-256 (the offline library is read
+  from it). When a download turns out byte-identical to the existing file, that file is left
+  untouched, so Google Drive doesn't re-upload it. Renamed or moved notebooks replace
   their old file (with **Keep older versions** on, an old file with other content goes to
   `_versions/`). Notebooks deleted on the tablet are kept locally.
 
@@ -216,7 +219,7 @@ How downloads are saved:
 
 | Shown as | Meaning |
 | --- | --- |
-| Not connected | Nothing at the address: cable, USB web interface setting, or address |
+| Not connected | Nothing at the address: cable, USB web interface setting, or address. The notes you've downloaded can still be browsed and read |
 | Not responding | Something accepts connections but doesn't answer, or answers HTTP 408. Seen while the tablet is asleep or still exporting a PDF. Wake it; if it persists, toggle USB web interface off and on, or replug |
 | Connected | Browsing and downloading available |
 

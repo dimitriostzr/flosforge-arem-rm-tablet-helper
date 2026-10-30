@@ -316,7 +316,14 @@ async function syncDocument({ client, doc, destDir, relPath, manifest, claimed, 
     isClaimed: (p) => claimed.has(key(p)),
   });
   let backup = entry?.rmdoc ?? null;
-  const record = () => ({ name: doc.name, ...pdf.record, ...(backup ? { rmdoc: backup } : {}), syncedAt: new Date().toISOString() });
+  // Folders, type and star as the tablet had them, so the library can be shown without it.
+  const about = {
+    name: doc.name,
+    folders: doc.folders ?? [],
+    fileType: doc.fileType ?? entry?.fileType,
+    favorite: doc.favorite ?? entry?.favorite,
+  };
+  const record = () => ({ ...about, ...pdf.record, ...(backup ? { rmdoc: backup } : {}), syncedAt: new Date().toISOString() });
   manifest.docs[doc.id] = record();
   await saveManifest(destDir, manifest);
 
@@ -472,6 +479,65 @@ async function savedCopy(destDir, doc) {
   return (await savedCopies(destDir, [doc])).get(doc.id) ?? null;
 }
 
+/** The manifest entry's file, if it is still in the folder: absolute path, else null. */
+async function existingFile(destDir, entry) {
+  if (typeof entry?.file !== 'string') return null;
+  try {
+    const file = absolute(destDir, entry.file);
+    return (await fsp.stat(file)).isFile() ? file : null;
+  } catch {
+    return null; // gone, or pointing outside the folder
+  }
+}
+
+/**
+ * The copy an earlier download saved of this notebook, whatever version it is, for reading
+ * without the tablet: { file, modified } or null.
+ */
+async function savedFile(destDir, id) {
+  const entry = (await loadManifest(destDir)).docs[id];
+  const file = await existingFile(destDir, entry);
+  return file ? { file, modified: entry.modified ?? null } : null;
+}
+
+/**
+ * The notebooks saved in destDir, from its manifest, shaped like RemarkableClient.library()
+ * ({ folders, docs }) so the library can be browsed without the tablet. Folder IDs are made up
+ * from their paths. Downloads made before the manifest kept folders take them from the file's
+ * path (as saved: sanitized names).
+ */
+async function localLibrary(destDir) {
+  const manifest = await loadManifest(destDir);
+  const folders = new Map(); // path key -> folder
+  const folderId = (names) => {
+    if (!names.length) return null;
+    const id = `local:${names.join('/')}`;
+    if (!folders.has(id)) folders.set(id, { id, name: names.at(-1), parentId: folderId(names.slice(0, -1)), path: names });
+    return id;
+  };
+  const docs = [];
+  await Promise.all(
+    Object.entries(manifest.docs).map(async ([id, entry]) => {
+      if (!(await existingFile(destDir, entry))) return;
+      const isNames = Array.isArray(entry.folders) && entry.folders.every((f) => typeof f === 'string');
+      const names = isNames ? entry.folders : entry.file.split('/').slice(0, -1);
+      docs.push({
+        id,
+        name: typeof entry.name === 'string' ? entry.name : path.posix.basename(entry.file, '.pdf'),
+        folders: names,
+        modified: typeof entry.modified === 'string' ? entry.modified : null,
+        fileType: typeof entry.fileType === 'string' ? entry.fileType : 'notebook',
+        favorite: entry.favorite === true,
+        lastPage: null,
+      });
+    })
+  );
+  // Built after the stats, so the folder list doesn't depend on which finished first.
+  docs.sort((a, b) => (a.id < b.id ? -1 : 1));
+  for (const doc of docs) doc.parentId = folderId(doc.folders);
+  return { folders: [...folders.values()], docs };
+}
+
 /** Lists the whole tablet, then exportDocuments() everything. Same result/rejections. */
 async function syncAll({ client, signal, ...options }) {
   if (signal?.aborted) throw Object.assign(new SyncCancelledError(), { summary: emptySummary() });
@@ -493,6 +559,8 @@ module.exports = {
   fetchPdf,
   savedCopy,
   savedCopies,
+  savedFile,
+  localLibrary,
   assignFileNames,
   MANIFEST_NAME,
   TEMP_SUFFIX,

@@ -14,6 +14,7 @@ if (location.protocol === 'file:') {
     onState: (callback) => ipcRenderer.on('state', (_event, state) => callback(state)),
     checkNow: () => ipcRenderer.invoke('connection:check'),
     library: () => ipcRenderer.invoke('tablet:library'),
+    localLibrary: () => ipcRenderer.invoke('local:library'),
     startDownload: (request) => ipcRenderer.invoke('download:start', request),
     stopDownload: () => ipcRenderer.invoke('download:stop'),
     openNote: (doc) => ipcRenderer.invoke('note:open', doc),

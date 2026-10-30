@@ -9,7 +9,7 @@ const path = require('node:path');
 
 const { RemarkableClient, normalizeAddress, DEFAULT_BASE_URL } = require('../src/remarkable');
 const { Config } = require('../src/config');
-const { syncAll, exportDocuments, fetchPdf, savedCopy, savedCopies, MANIFEST_NAME, TEMP_SUFFIX, VERSIONS_DIR } = require('../src/sync');
+const { syncAll, exportDocuments, fetchPdf, savedCopy, savedCopies, savedFile, localLibrary, MANIFEST_NAME, TEMP_SUFFIX, VERSIONS_DIR } = require('../src/sync');
 const { TextIndex, foldText } = require('../src/textindex');
 const { combinePdfs } = require('../src/combine');
 const { sanitizeFileName } = require('../src/sanitize');
@@ -573,6 +573,53 @@ describe('sync against a mock tablet', () => {
     assert.equal(await savedCopy(dest, { id: 'id-0004', modified: null }), null, 'no timestamp to compare');
     await fsp.rm(path.join(dest, 'Meeting notes.pdf'));
     assert.equal(await savedCopy(dest, meeting), null, 'file gone');
+  });
+
+  test('localLibrary() lists the saved notes with their tablet folders, without the tablet', async () => {
+    doc('id-0002').Bookmarked = true;
+    doc('id-0002').fileType = 'pdf';
+    await syncAll({ client, destDir: dest });
+    await tablet.stop();
+    await fsp.rm(path.join(dest, 'Meeting notes.pdf')); // deleted here: not listed
+
+    const { folders, docs } = await localLibrary(dest);
+    const byId = Object.fromEntries(docs.map((d) => [d.id, d]));
+    assert.deepEqual(Object.keys(byId).sort(), ['id-0002', 'id-0003', 'id-0004']);
+    assert.deepEqual(byId['id-0002'], {
+      id: 'id-0002',
+      name: 'Ideas: 2026/Q4?',
+      folders: ['Work / Projects'], // the tablet's names, not the sanitized ones
+      modified: '2026-01-02T00:00:00Z',
+      fileType: 'pdf',
+      favorite: true,
+      lastPage: null,
+      parentId: 'local:Work / Projects',
+    });
+    assert.equal(byId['id-0003'].parentId, null);
+    assert.equal(byId['id-0003'].fileType, 'notebook');
+    assert.deepEqual(folders.map((f) => [f.id, f.parentId]), [
+      ['local:Work / Projects', null],
+      ['local:Work / Projects/..', 'local:Work / Projects'],
+    ]);
+    assert.deepEqual(await localLibrary(path.join(dest, 'missing')), { folders: [], docs: [] });
+  });
+
+  test('localLibrary() takes folders from the file path in manifests made before they were kept', async () => {
+    await syncAll({ client, destDir: dest });
+    const file = path.join(dest, MANIFEST_NAME);
+    const manifest = JSON.parse(await fsp.readFile(file, 'utf8'));
+    for (const entry of Object.values(manifest.docs)) delete entry.folders;
+    await fsp.writeFile(file, JSON.stringify(manifest));
+    const { docs } = await localLibrary(dest);
+    assert.deepEqual(docs.find((d) => d.id === 'id-0004').folders, ['Work - Projects', 'Untitled']);
+  });
+
+  test('savedFile() returns the saved copy whatever its version, for reading offline', async () => {
+    await syncAll({ client, destDir: dest });
+    assert.deepEqual(await savedFile(dest, 'id-0001'), { file: path.join(dest, 'Meeting notes.pdf'), modified: '2026-01-01T00:00:00Z' });
+    assert.equal(await savedFile(dest, 'nope'), null);
+    await fsp.rm(path.join(dest, 'Meeting notes.pdf'));
+    assert.equal(await savedFile(dest, 'id-0001'), null, 'file gone');
   });
 
   test('savedCopies() checks many notes in one pass', async () => {

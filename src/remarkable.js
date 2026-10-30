@@ -336,7 +336,7 @@ class RemarkableClient {
 
   /**
    * Every notebook under a folder (default: the whole tablet), normalised to
-   * { id, name, folders, modified }.
+   * { id, name, folders, modified, fileType, favorite }.
    *
    * /documents/ only lists the top level, so folders (CollectionType) are walked with
    * /documents/{folderId}, which is what the tablet's own web UI does. `folders` is the
@@ -363,6 +363,8 @@ class RemarkableClient {
             name,
             folders: folder.folders,
             modified: typeof item.ModifiedClient === 'string' ? item.ModifiedClient : null,
+            fileType: typeof item.fileType === 'string' ? item.fileType : 'notebook',
+            favorite: item.Bookmarked === true,
           });
         }
       }

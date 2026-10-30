@@ -1,7 +1,7 @@
 {
   "name": "flosforge-arem-buddy",
   "productName": "FlosForge ArEm Buddy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "FlosForge ArEm Buddy: browse, read, download and upload the notes on a reMarkable tablet over USB. Free and open source. Not affiliated with reMarkable AS.",
   "main": "main.js",
   "desktopName": "flosforge-arem-buddy.desktop",

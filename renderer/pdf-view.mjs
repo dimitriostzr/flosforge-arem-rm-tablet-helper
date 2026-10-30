@@ -9,6 +9,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL('../node_modules/pdfjs-dist/build/
 const GAP = 16; // px between pages; matches .pdf-page margin in app.css
 const PAD = 28; // horizontal padding inside the scroller
 const ZOOM_STEPS = [0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+const MIN_ZOOM = 0.25; // pinching: as far out as fit width goes, and as far in as the steps
+const MAX_ZOOM = 3;
+const PINCH_SETTLE_MS = 150; // pages are redrawn sharp once the fingers stop
 const KEEP_RENDERED = 2; // viewport-heights above/below that stay rendered
 const RAIL_WIDTH = 108; // px: thumbnail width in the page strip (matches .rail-thumb in app.css)
 
@@ -29,6 +32,19 @@ class PdfView {
     // Fit-width pages re-fit when the view's width changes (window resize, page strip shown or
     // hidden), keeping the same spot in view.
     this.resizeObserver = new ResizeObserver(() => this.zoom === 'fit' && this.pages.length && this.#layout(this.#anchor()));
+    // A trackpad pinch arrives as wheel events with ctrlKey set (so does Ctrl + scroll wheel).
+    // Each event's deltaY is -100 × ln(scale change), the convention Chromium uses for pinches.
+    scroller.addEventListener(
+      'wheel',
+      (event) => {
+        if (!event.ctrlKey || !this.pages.length) return;
+        event.preventDefault(); // no page zoom
+        const delta = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 16 : event.deltaY;
+        // A mouse wheel notch (±100) zooms like a firm pinch, not ×2.7 at once.
+        this.zoomAt(Math.exp(-Math.max(-25, Math.min(25, delta)) / 100), event.clientX, event.clientY);
+      },
+      { passive: false }
+    );
   }
 
   /** Opens a PDF from its bytes. Resolves with the page count. */
@@ -80,6 +96,8 @@ class PdfView {
     this.loadingTask = null;
     this.doc = null;
     this.current = 1;
+    clearTimeout(this.pinchTimer);
+    this.pinching = false;
   }
 
   get pageCount() {
@@ -105,6 +123,37 @@ class PdfView {
   zoomOut() {
     const s = this.scale;
     this.setZoom([...ZOOM_STEPS].reverse().find((z) => z < s - 0.01) ?? ZOOM_STEPS[0]);
+  }
+
+  /**
+   * Zooms by `factor`, keeping the spot under (x, y) (client coordinates) where it is, as a
+   * pinch does. While pinching, pages stretch; they're redrawn once it stops.
+   */
+  zoomAt(factor, x, y) {
+    const from = this.scale;
+    const to = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, from * factor));
+    if (Math.abs(to - from) < 0.001) return;
+    // The page under the pointer (by its top edge, as #update finds the current page).
+    const probe = this.scroller.scrollTop + y - this.scroller.getBoundingClientRect().top;
+    let p = this.pages[0];
+    for (const q of this.pages) {
+      if (q.el.offsetTop <= probe) p = q;
+      else break;
+    }
+    const before = p.el.getBoundingClientRect();
+    const fx = (x - before.left) / before.width;
+    const fy = (y - before.top) / before.height;
+    this.pinching = true;
+    clearTimeout(this.pinchTimer);
+    this.pinchTimer = setTimeout(() => {
+      this.pinching = false;
+      this.#schedule(true);
+    }, PINCH_SETTLE_MS);
+    this.zoom = to;
+    this.#layout();
+    const after = p.el.getBoundingClientRect();
+    this.scroller.scrollLeft += after.left + fx * after.width - x;
+    this.scroller.scrollTop += after.top + fy * after.height - y;
   }
 
   next() {
@@ -179,7 +228,8 @@ class PdfView {
       const start = p.el.offsetTop;
       const end = start + p.el.offsetHeight;
       const near = end > top - height * KEEP_RENDERED && start < top + height * (KEEP_RENDERED + 1);
-      if (near && ((!p.canvas && !p.task) || p.scale !== scale)) this.#render(p, scale);
+      // Mid-pinch, a page already drawn is only stretched: redrawing on every step would thrash.
+      if (near && ((!p.canvas && !p.task) || (p.scale !== scale && !this.pinching))) this.#render(p, scale);
       else if (!near && p.canvas) this.#release(p);
     }
     if (changed || force) this.onChange({ page: this.current, pages: this.pages.length, scale, zoom: this.zoom });

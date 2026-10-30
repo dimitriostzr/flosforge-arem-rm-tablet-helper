@@ -64,11 +64,13 @@ darkQuery.addEventListener('change', () => {
 });
 
 let current = null; // latest state from main
-let library = null; // { folders, docs } from the tablet
+let library = null; // { folders, docs } from the tablet, or from the save-to folder
+let librarySource = null; // 'tablet' | 'local' (the notes saved in the save-to folder, offline)
 let index = null; // lookups derived from library
 let libraryError = null;
 let libraryLoading = false;
-let libraryAddress = null; // address the library was loaded from
+let libraryAddress = null; // address the library was loaded from (null: from the folder)
+let localLoadedFor = null; // save-to folder the offline library was last read from
 // id -> what this computer has for the note's current version (see localNotes in main.js):
 // { thumb?, pages?, tablet?, pdf?, indexed? }
 let local = {};
@@ -204,18 +206,41 @@ async function loadLibrary() {
   const address = current?.tabletAddress;
   const result = await api.library();
   libraryLoading = false;
-  if (result.error) {
-    libraryError = result.error;
-  } else {
-    library = result.library;
-    libraryAddress = address;
-    index = buildIndex(library);
-    // Drop selections and a folder view that no longer exist.
-    for (const id of selected) if (!index.docById.has(id)) selected.delete(id);
-    if (ui.view.kind === 'folder' && !index.folderById.has(ui.view.id)) ui.view = { kind: 'all' };
+  if (result.error) libraryError = result.error;
+  else setLibrary(result.library, 'tablet', address);
+  render();
+  refreshLocal();
+}
+
+/**
+ * No tablet: shows the notes saved in the save-to folder, if there are any (else the connect
+ * page stays). Read once per folder; the tablet's library replaces it when it connects.
+ */
+async function loadLocalLibrary() {
+  const destination = current?.destination;
+  localLoadedFor = destination;
+  const result = await api.localLibrary();
+  // The tablet connected, or the folder changed, meanwhile.
+  if (result.error || current?.destination !== destination) return;
+  if (library && librarySource !== 'local') return;
+  if (result.library.docs.length) {
+    setLibrary(result.library, 'local', null);
+  } else if (library) {
+    // Another folder, with nothing saved in it yet.
+    [library, librarySource, index, local] = [null, null, null, {}];
   }
   render();
   refreshLocal();
+}
+
+function setLibrary(lib, source, address) {
+  library = lib;
+  librarySource = source;
+  libraryAddress = address;
+  index = buildIndex(library);
+  // Drop selections and a folder view that no longer exist.
+  for (const id of selected) if (!index.docById.has(id)) selected.delete(id);
+  if (ui.view.kind === 'folder' && !index.folderById.has(ui.view.id)) ui.view = { kind: 'all' };
 }
 
 // ---------------------------------------------------------------------------
@@ -483,9 +508,16 @@ function renderSidebar() {
     ? job.phase === 'listing'
       ? 'Finding notebooks…'
       : `${job.current} of ${job.total}`
-    : [current.tabletName ?? hostOf(tabletAddress), library && status === 'ok' ? plural(library.docs.length, 'note') : ''].filter(Boolean).join(' · ');
+    : [
+        current.tabletName ?? hostOf(tabletAddress),
+        library && status === 'ok' ? plural(library.docs.length, 'note') : '',
+        library && librarySource === 'local' && status !== 'ok' ? `${plural(library.docs.length, 'note')} saved here` : '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
   $('refresh').disabled = status !== 'ok' || Boolean(job) || libraryLoading;
   $('refresh').title = 'Reload the notes from the tablet';
+  $('open-folder').title = `Open ${current.destinationDisplay}, where downloads are saved`;
   $('nav-settings').classList.toggle('active', ui.page === 'settings');
   $('nav-about').classList.toggle('active', ui.page === 'about');
 
@@ -605,7 +637,10 @@ function renderHead(scoped) {
   } else if (ui.view.kind === 'recent') {
     subtitle = `${of(inView(library.docs, ui.view).length)} edited in the past ${RECENT_DAYS} days`;
   } else {
-    subtitle = `${of(library.docs.length)} on your tablet`;
+    subtitle =
+      librarySource === 'local'
+        ? `${of(library.docs.length)} saved on this computer · Tablet not connected`
+        : `${of(library.docs.length)} on your tablet`;
   }
   if (searching() && !globalSearch()) subtitle += ` · matching “${ui.search.trim()}”`;
   $('page-title').textContent = title;
@@ -1106,7 +1141,7 @@ function setLogStatus(text, kind = '') {
 // Downloads (header button, selection bar, activity strip)
 
 const canDownload = () => current?.status === 'ok' && !current.job && !current.reading;
-const noteTarget = (d) => ({ type: 'notebook', id: d.id, name: d.name, folders: d.folders, modified: d.modified });
+const noteTarget = (d) => ({ type: 'notebook', id: d.id, name: d.name, folders: d.folders, modified: d.modified, fileType: d.fileType, favorite: d.favorite });
 const selectedNeedingThumbnails = () =>
   [...selected].map((id) => index?.docById.get(id)).filter((d) => d && d.modified && !local[d.id]?.thumb);
 let dismissedResultAt = null;
@@ -1313,7 +1348,12 @@ function renderReader() {
   const { doc, state } = reading;
   const ready = state === 'ready';
   $('reader-name').textContent = doc.name;
-  $('reader-meta').textContent = [folderLabel(doc), reading.pages ? plural(reading.pages, 'page') : '', fullDate(doc)]
+  $('reader-meta').textContent = [
+    folderLabel(doc),
+    reading.pages ? plural(reading.pages, 'page') : '',
+    fullDate(doc),
+    reading.outdated ? 'Older saved copy (tablet not connected)' : '',
+  ]
     .filter(Boolean)
     .join(' · ');
   const multiPage = ready && (reading.pages ?? 0) > 1;
@@ -1341,7 +1381,7 @@ function renderReader() {
   }
   if (state === 'loading') {
     const seconds = readerElapsed();
-    $('reader-message').textContent = 'Exporting from your tablet…';
+    $('reader-message').textContent = current?.status === 'ok' ? 'Exporting from your tablet…' : 'Opening the saved copy…';
     $('reader-hint').textContent =
       seconds >= 20
         ? `${seconds} s so far. Long notebooks take a while; if nothing happens, the tablet may not be exporting at all.`
@@ -1356,7 +1396,7 @@ function renderReader() {
 
 async function openReader(doc) {
   if (current?.job) return alert('Wait for the download to finish.');
-  if (current?.status !== 'ok') return alert('The tablet is not connected.');
+  // Without the tablet, the main process opens the copy saved on this computer, if any.
   viewer?.close();
   const mine = { doc, state: 'loading' };
   reading = mine;
@@ -1380,7 +1420,7 @@ async function openReader(doc) {
   if (file.error) return fail(file.error);
 
   // Show the page area first, so the viewer can measure it for fit-to-width.
-  Object.assign(mine, { state: 'ready', file: result.path });
+  Object.assign(mine, { state: 'ready', file: result.path, outdated: Boolean(result.outdated) });
   renderReader();
   await pdfViewReady();
   viewer ??= new window.PdfView($('reader-pages'), { onChange: renderReaderTools, rail: $('reader-rail') });
@@ -1510,6 +1550,10 @@ $('reader-download').addEventListener('click', async () => {
   }
 });
 $('reader-saved-open').addEventListener('click', () => api.openDestination());
+$('open-folder').addEventListener('click', async () => {
+  const result = await api.openDestination();
+  if (result?.error) alert(result.error);
+});
 
 // ---------------------------------------------------------------------------
 
@@ -1544,6 +1588,8 @@ function onState(state) {
   if (current && current.tabletAddress !== state.tabletAddress) {
     // A different tablet: its notes and folder IDs mean nothing here.
     library = null;
+    librarySource = null;
+    localLoadedFor = null;
     index = null;
     local = {};
     selected.clear();
@@ -1554,8 +1600,10 @@ function onState(state) {
   current = state;
   applyTheme();
   render();
-  const needLibrary = !library || libraryAddress !== state.tabletAddress;
+  const needLibrary = !library || librarySource === 'local' || libraryAddress !== state.tabletAddress;
+  const needLocal = (!library || (librarySource === 'local' && folderChanged)) && localLoadedFor !== state.destination;
   if (state.status === 'ok' && !state.job && (needLibrary || (!wasOk && libraryError))) loadLibrary();
+  else if (state.status !== 'ok' && !state.job && needLocal) loadLocalLibrary();
   else if (downloadEnded && state.lastResult?.kind === 'upload' && state.lastResult.summary?.downloaded) loadLibrary();
   else if (downloadEnded || folderChanged) refreshLocal();
 }
