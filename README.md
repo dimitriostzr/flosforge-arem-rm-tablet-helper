@@ -9,6 +9,11 @@
   Browse, read, search, download and upload your notes over USB. No account. No cloud. No telemetry.
 </p>
 
+<p align="center">
+  <a href="https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper/releases/latest"><b>Download the latest release</b></a> for macOS, Windows and Linux
+  · <a href="#build-it-yourself">or build it yourself</a>
+</p>
+
 > **A note on this project:** I built FlosForge ArEm Buddy for my own reMarkable and decided to share it openly under
 > the MIT License. It's a personal project, provided as-is. You're welcome to [download it](#get-it), use it, and
 > [fork it](#fork-it) to change or extend it however you like. [Bug reports](#reporting-a-bug) are welcome; the
@@ -18,6 +23,15 @@
   <img src="docs/screenshots/library.png" width="49%" alt="FlosForge ArEm Buddy in light mode: the library with thumbnails" />
   <img src="docs/screenshots/search-dark.png" width="49%" alt="FlosForge ArEm Buddy in dark mode: searching notes" />
 </p>
+
+## What's new in 1.0.1
+
+- **Offline:** with no tablet connected, the notes you've downloaded are still there to browse, search and read.
+- **Pinch to zoom** in the reader on a trackpad (or Ctrl + scroll wheel).
+- **Open Notes Folder** in the sidebar, to jump to where your PDFs are saved.
+- **Windows installer:** a setup or a portable `.exe` that runs without installing, instead of a zip.
+
+See the [1.0.1 release notes](https://github.com/dimitriostzr/flosforge-arem-rm-tablet-helper/releases/tag/v1.0.1) for everything.
 
 ## Why
 
