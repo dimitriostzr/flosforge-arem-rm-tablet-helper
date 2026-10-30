@@ -27,7 +27,7 @@
     "screenshots": "electron scripts/screenshots.js"
   },
   "devDependencies": {
-    "electron": "^44.7.2",
+    "electron": "^44.10.0",
     "electron-builder": "^26.15.3"
   },
   "build": {
